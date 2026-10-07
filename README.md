@@ -1,49 +1,121 @@
 # Student Attendance Tracker
 
-A Java 17 Swing application following MVC principles, backed by Oracle XE through JDBC.
+A Java Swing desktop application for teachers to manage students, courses, enrollments, and daily attendance. The application follows an MVC-style structure and persists data in Oracle Database XE through JDBC.
 
-## Run the application
+## Features
 
-Install JDK 17 and Maven, then run:
+- Teacher login backed by Oracle Database.
+- Student CRUD: add, update, delete, and list student records.
+- Teacher-owned course CRUD.
+- Student-to-course enrollment management.
+- Daily present/absent attendance marking.
+- Attendance upsert: saving the same student/course/date updates the existing record rather than inserting a duplicate.
+- Searchable attendance reports with calculated percentages.
+- Native system look-and-feel Java Swing interface.
 
-```powershell
-mvn compile exec:java
-```
+## Technology Stack
 
-After running the seed script, sign in with username `admin` and password `password`.
+- Java 17
+- Java Swing
+- Maven
+- Oracle Database XE 21c
+- Oracle JDBC (`ojdbc11`)
 
-## Current application behavior
-
-- Manage students and teacher-owned courses with Oracle CRUD actions.
-- Enroll students in courses before marking attendance.
-- Select a course and ISO date (`YYYY-MM-DD`), then save present/absent values.
-- Search attendance reports by student name/code and course.
-- Data persists in Oracle; the mock controller is retained only as reference code.
-
-## Oracle XE 21c setup
-
-Oracle XE normally exposes its pluggable database as `XEPDB1` on port `1521`. In SQL*Plus or SQL Developer, connect as a system administrator, then create an application schema:
-
-```sql
-CREATE USER attendance_app IDENTIFIED BY ChooseAStrongPassword;
-GRANT CREATE SESSION, CREATE TABLE, CREATE SEQUENCE, CREATE PROCEDURE TO attendance_app;
-ALTER USER attendance_app QUOTA UNLIMITED ON USERS;
-```
-
-Reconnect as `attendance_app` to `localhost:1521/XEPDB1`. If your earlier test tables still exist and contain no data you need, first run [database/reset-jdbc-development-schema.sql](database/reset-jdbc-development-schema.sql); it permanently deletes those application tables. Then run [database/oracle-jdbc-schema.sql](database/oracle-jdbc-schema.sql) followed by [database/oracle-jdbc-seed.sql](database/oracle-jdbc-seed.sql). In SQL Developer, open each script and use **Run Script**. These scripts create the normalized `TEACHERS`, `STUDENTS`, `COURSES`, `ENROLLMENTS`, and `ATTENDANCE` tables.
-
-When JDBC is added, use the Oracle driver plus a connection string in this form:
+## Project Structure
 
 ```text
-jdbc:oracle:thin:@//localhost:1521/XEPDB1
+src/main/java/com/attendance/
+├── controller/  Application workflow layer
+├── dao/         JDBC data-access objects
+├── main/        Application entry point
+├── model/       Domain models
+├── util/        UI and password utilities
+└── view/        Swing frames and panels
+
+database/
+├── oracle-jdbc-schema.sql  Normalized database schema
+└── oracle-jdbc-seed.sql    Demonstration teacher and data
 ```
 
-Set the database values as Windows environment variables before launching the app:
+## Database Design
+
+The application uses five normalized tables:
+
+| Table | Purpose |
+| --- | --- |
+| `TEACHERS` | Teacher credentials and profile data |
+| `STUDENTS` | Student master records |
+| `COURSES` | Courses owned by a teacher |
+| `ENROLLMENTS` | Student-to-course many-to-many relationship |
+| `ATTENDANCE` | One present/absent status per enrollment and date |
+
+The unique constraint on `(enrollment_id, attendance_date)` prevents duplicate daily attendance entries.
+
+## Prerequisites
+
+- JDK 17 or newer
+- Apache Maven 3.9 or newer
+- Oracle Database XE running locally
+- Oracle SQL Developer (recommended for running setup scripts)
+
+## Database Setup
+
+1. Connect to your Oracle database using the same account the application will use.
+2. Run [database/oracle-jdbc-schema.sql](database/oracle-jdbc-schema.sql).
+3. Run [database/oracle-jdbc-seed.sql](database/oracle-jdbc-seed.sql).
+
+The seed script creates the initial application account:
+
+```text
+Application username: admin
+Application password: password
+```
+
+> Change the seed account password before deploying or sharing a real application instance.
+
+## Configure the Database Connection
+
+Set these Windows environment variables. Replace the database username and password with your own Oracle account values.
 
 ```powershell
 setx ATTENDANCE_DB_URL "jdbc:oracle:thin:@//localhost:1521/XEPDB1"
-setx ATTENDANCE_DB_USER "attendance_app"
-setx ATTENDANCE_DB_PASSWORD "your_database_password"
+setx ATTENDANCE_DB_USER "SYSTEM"
+setx ATTENDANCE_DB_PASSWORD "your_oracle_password"
 ```
 
-Open a new PowerShell window after using `setx`, then launch with `mvn clean compile exec:java`.
+Close and reopen VS Code or PowerShell after using `setx`. For a current terminal session only, use:
+
+```powershell
+$env:ATTENDANCE_DB_URL = 'jdbc:oracle:thin:@//localhost:1521/XEPDB1'
+$env:ATTENDANCE_DB_USER = 'SYSTEM'
+$env:ATTENDANCE_DB_PASSWORD = 'your_oracle_password'
+```
+
+Never commit database passwords or other credentials to this repository.
+
+## Run the Application
+
+From the project root:
+
+```powershell
+mvn clean compile exec:java
+```
+
+## Usage Flow
+
+1. Sign in as a teacher.
+2. Add students and courses.
+3. Enroll students in a course.
+4. Select a course and date, then save attendance.
+5. Open Reports to search and view attendance percentages.
+
+## Security Notes
+
+- Database queries use prepared statements.
+- JDBC resources use try-with-resources.
+- Teacher passwords are verified using PBKDF2 hashes.
+- Database credentials are read from environment variables, not Java source files.
+
+## License
+
+This project is available under the [MIT License](LICENSE).
