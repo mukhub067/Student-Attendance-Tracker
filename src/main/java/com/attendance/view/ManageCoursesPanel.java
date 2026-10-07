@@ -1,6 +1,6 @@
 package com.attendance.view;
 
-import com.attendance.controller.MockAttendanceController;
+import com.attendance.controller.AttendanceController;
 import com.attendance.model.Course;
 import com.attendance.util.UITheme;
 import javax.swing.*;
@@ -8,9 +8,9 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 
 public class ManageCoursesPanel extends JPanel {
-    private final MockAttendanceController controller; private final DefaultTableModel model=new DefaultTableModel(new String[]{"ID","Code","Course name","Description"},0){public boolean isCellEditable(int r,int c){return false;}};
+    private final AttendanceController controller; private final DefaultTableModel model=new DefaultTableModel(new String[]{"ID","Code","Course name","Description"},0){public boolean isCellEditable(int r,int c){return false;}};
     private final JTable table=new JTable(model); private final JTextField code=new JTextField(10),name=new JTextField(18),description=new JTextField(23);
-    public ManageCoursesPanel(MockAttendanceController controller) { this.controller=controller;setLayout(new BorderLayout(12,12));setBackground(UITheme.LIGHT);setBorder(UITheme.padding(20));JPanel h=UITheme.panel(new BorderLayout());h.add(UITheme.title("Manage Courses"),BorderLayout.WEST);add(h,BorderLayout.NORTH);UITheme.styleTable(table);table.getSelectionModel().addListSelectionListener(e->{if(!e.getValueIsAdjusting()&&table.getSelectedRow()>=0)load();});add(new JScrollPane(table),BorderLayout.CENTER);add(form(),BorderLayout.SOUTH);refresh(); }
+    public ManageCoursesPanel(AttendanceController controller) { this.controller=controller;setLayout(new BorderLayout(12,12));setBackground(UITheme.LIGHT);setBorder(UITheme.padding(20));JPanel h=UITheme.panel(new BorderLayout());h.add(UITheme.title("Manage Courses"),BorderLayout.WEST);add(h,BorderLayout.NORTH);UITheme.styleTable(table);table.getSelectionModel().addListSelectionListener(e->{if(!e.getValueIsAdjusting()&&table.getSelectedRow()>=0)load();});add(new JScrollPane(table),BorderLayout.CENTER);add(form(),BorderLayout.SOUTH);refresh(); }
     private JPanel form() {
         JPanel panel = UITheme.panel(new FlowLayout(FlowLayout.LEFT, 10, 10));
         panel.add(new JLabel("Course code"));

@@ -1,0 +1,12 @@
+package com.attendance.dao;
+
+import com.attendance.model.*;
+import java.sql.*;
+import java.util.*;
+
+public class EnrollmentDAO {
+    public List<Enrollment> getEnrollments(int teacherId){List<Enrollment> rows=new ArrayList<>();String sql="SELECT e.enrollment_id,e.student_id,e.course_id FROM enrollments e JOIN courses c ON c.course_id=e.course_id WHERE c.teacher_id=? ORDER BY e.enrollment_id";try(Connection c=DatabaseManager.getConnection();PreparedStatement s=c.prepareStatement(sql)){s.setInt(1,teacherId);try(ResultSet rs=s.executeQuery()){while(rs.next())rows.add(new Enrollment(rs.getInt(1),rs.getInt(2),rs.getInt(3)));}}catch(SQLException ex){throw new DataAccessException("Unable to load enrollments.",ex);}return rows;}
+    public List<Student> studentsForCourse(int courseId,int teacherId){List<Student> rows=new ArrayList<>();String sql="SELECT s.student_id,s.student_code,s.full_name,s.email FROM enrollments e JOIN students s ON s.student_id=e.student_id JOIN courses c ON c.course_id=e.course_id WHERE e.course_id=? AND c.teacher_id=? ORDER BY s.full_name";try(Connection c=DatabaseManager.getConnection();PreparedStatement p=c.prepareStatement(sql)){p.setInt(1,courseId);p.setInt(2,teacherId);try(ResultSet rs=p.executeQuery()){while(rs.next())rows.add(new Student(rs.getInt(1),rs.getString(2),rs.getString(3),rs.getString(4)));}}catch(SQLException ex){throw new DataAccessException("Unable to load enrolled students.",ex);}return rows;}
+    public void enroll(int studentId,int courseId,int teacherId){String sql="INSERT INTO enrollments(student_id,course_id) SELECT ?,? FROM courses WHERE course_id=? AND teacher_id=?";try(Connection c=DatabaseManager.getConnection();PreparedStatement p=c.prepareStatement(sql)){p.setInt(1,studentId);p.setInt(2,courseId);p.setInt(3,courseId);p.setInt(4,teacherId);if(p.executeUpdate()==0)throw new IllegalArgumentException("Course not found or access denied.");}catch(SQLException ex){throw new DataAccessException("Unable to enroll student. The enrollment may already exist.",ex);}}
+    public void remove(int enrollmentId,int teacherId){String sql="DELETE FROM enrollments WHERE enrollment_id=? AND course_id IN (SELECT course_id FROM courses WHERE teacher_id=?)";try(Connection c=DatabaseManager.getConnection();PreparedStatement p=c.prepareStatement(sql)){p.setInt(1,enrollmentId);p.setInt(2,teacherId);p.executeUpdate();}catch(SQLException ex){throw new DataAccessException("Unable to remove enrollment.",ex);}}
+}

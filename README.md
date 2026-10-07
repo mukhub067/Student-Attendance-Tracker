@@ -1,6 +1,6 @@
 # Student Attendance Tracker
 
-A Java 17 Swing frontend following MVC principles. It currently uses an in-memory mock controller; no JDBC code runs yet.
+A Java 17 Swing application following MVC principles, backed by Oracle XE through JDBC.
 
 ## Run the application
 
@@ -10,15 +10,15 @@ Install JDK 17 and Maven, then run:
 mvn compile exec:java
 ```
 
-Sign in with username `admin` and password `password`.
+After running the seed script, sign in with username `admin` and password `password`.
 
 ## Current application behavior
 
-- Manage students and courses with in-memory add, update, and delete actions.
+- Manage students and teacher-owned courses with Oracle CRUD actions.
 - Enroll students in courses before marking attendance.
 - Select a course and ISO date (`YYYY-MM-DD`), then save present/absent values.
 - Search attendance reports by student name/code and course.
-- Closing the application resets mock data; that is intentional until JDBC is implemented.
+- Data persists in Oracle; the mock controller is retained only as reference code.
 
 ## Oracle XE 21c setup
 
@@ -30,7 +30,7 @@ GRANT CREATE SESSION, CREATE TABLE, CREATE SEQUENCE, CREATE PROCEDURE TO attenda
 ALTER USER attendance_app QUOTA UNLIMITED ON USERS;
 ```
 
-Reconnect as `attendance_app` to `localhost:1521/XEPDB1`, then run [database/oracle-schema.sql](database/oracle-schema.sql). In SQL Developer, open the script and use **Run Script**. The script creates `STUDENTS`, `COURSES`, `ENROLLMENTS`, and `ATTENDANCE` with primary keys, foreign keys, unique constraints, and valid status checks.
+Reconnect as `attendance_app` to `localhost:1521/XEPDB1`. If your earlier test tables still exist and contain no data you need, first run [database/reset-jdbc-development-schema.sql](database/reset-jdbc-development-schema.sql); it permanently deletes those application tables. Then run [database/oracle-jdbc-schema.sql](database/oracle-jdbc-schema.sql) followed by [database/oracle-jdbc-seed.sql](database/oracle-jdbc-seed.sql). In SQL Developer, open each script and use **Run Script**. These scripts create the normalized `TEACHERS`, `STUDENTS`, `COURSES`, `ENROLLMENTS`, and `ATTENDANCE` tables.
 
 When JDBC is added, use the Oracle driver plus a connection string in this form:
 
@@ -38,4 +38,12 @@ When JDBC is added, use the Oracle driver plus a connection string in this form:
 jdbc:oracle:thin:@//localhost:1521/XEPDB1
 ```
 
-Keep database URL, user, and password outside committed Java source (for example, environment variables or an ignored local properties file).
+Set the database values as Windows environment variables before launching the app:
+
+```powershell
+setx ATTENDANCE_DB_URL "jdbc:oracle:thin:@//localhost:1521/XEPDB1"
+setx ATTENDANCE_DB_USER "attendance_app"
+setx ATTENDANCE_DB_PASSWORD "your_database_password"
+```
+
+Open a new PowerShell window after using `setx`, then launch with `mvn clean compile exec:java`.
