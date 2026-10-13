@@ -20,10 +20,10 @@ public class ManageCoursesPanel extends JPanel {
         panel.add(new JLabel("Description"));
         panel.add(description);
 
-        JButton addButton = UITheme.button("Add");
-        JButton updateButton = UITheme.button("Update");
+        JButton addButton = UITheme.successButton("Add");
+        JButton updateButton = UITheme.warningButton("Update");
         JButton deleteButton = UITheme.dangerButton("Delete");
-        JButton clearButton = UITheme.button("Clear");
+        JButton clearButton = UITheme.secondaryButton("Clear");
         panel.add(addButton);
         panel.add(updateButton);
         panel.add(deleteButton);
