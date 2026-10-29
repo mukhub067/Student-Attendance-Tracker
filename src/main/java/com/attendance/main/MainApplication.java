@@ -9,4 +9,4 @@ public final class MainApplication {
         try { UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); } catch (Exception ignored) { }
         SwingUtilities.invokeLater(() -> new LoginFrame().setVisible(true));
     }
-}
+} 
